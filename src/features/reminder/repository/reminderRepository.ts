@@ -2,7 +2,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 
 import { db, type DbExecutor } from '@/db/client';
 import { EntityType, recordChange, SyncOp } from '@/db/outbox';
-import { reminders } from '@/db/schema';
+import { events, reminders, tasks } from '@/db/schema';
 import { nowUtcIso } from '@/shared/utils/date';
 import { newId } from '@/shared/utils/uuid';
 
@@ -11,6 +11,18 @@ import type { Reminder, ReminderTarget } from '../types';
 function targetCondition(target: ReminderTarget) {
   return 'eventId' in target ? eq(reminders.eventId, target.eventId) : eq(reminders.taskId, target.taskId);
 }
+
+export const reminderQueries = {
+  /** 살아 있는 알림 + 대상 일정/할 일 (기기 알림 예약용) */
+  activeWithTargets(executor: DbExecutor = db) {
+    return executor
+      .select({ reminder: reminders, event: events, task: tasks })
+      .from(reminders)
+      .leftJoin(events, and(eq(reminders.eventId, events.id), isNull(events.deletedAt)))
+      .leftJoin(tasks, and(eq(reminders.taskId, tasks.id), isNull(tasks.deletedAt)))
+      .where(isNull(reminders.deletedAt));
+  },
+};
 
 export const reminderRepository = {
   /** MVP는 대상당 알림 1개 */
