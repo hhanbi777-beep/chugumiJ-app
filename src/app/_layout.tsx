@@ -9,6 +9,7 @@ import migrations from '@/db/migrations/migrations';
 import { ensureDefaults } from '@/db/seed';
 import { useAlarmScheduling } from '@/features/alarm';
 import { useReminderNotifications } from '@/features/reminder';
+import { useTodayWidgetSync } from '@/features/widget';
 import { replaceScheduled, setupNotifications, useOpenedNotification } from '@/services/notifications';
 
 /** iOS는 앱당 예약 알림 64개 제한. 여유를 두고 알람 먼저, 그다음 가까운 알림 순으로 자른다. */
@@ -67,6 +68,7 @@ function AppEffects() {
   const now = useForegroundNow();
   const alarmItems = useAlarmScheduling(now);
   const reminderItems = useReminderNotifications(now);
+  useTodayWidgetSync(now);
   const scheduled = useMemo(
     () => [...alarmItems, ...reminderItems].slice(0, MAX_SCHEDULED),
     [alarmItems, reminderItems],

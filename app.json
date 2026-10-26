@@ -43,6 +43,29 @@
         {
           "color": "#2F5BD9"
         }
+      ],
+      [
+        "expo-widgets",
+        {
+          "enableAndroid": true,
+          "widgets": [
+            {
+              "name": "TodayWidget",
+              "displayName": "오늘",
+              "description": "오늘 일정과 할 일을 한눈에",
+              "ios": {
+                "supportedFamilies": ["systemSmall", "systemMedium"]
+              },
+              "android": {
+                "minWidth": 180,
+                "minHeight": 110,
+                "targetCellWidth": 3,
+                "targetCellHeight": 2,
+                "resizeMode": "both"
+              }
+            }
+          ]
+        }
       ]
     ],
     "experiments": {
