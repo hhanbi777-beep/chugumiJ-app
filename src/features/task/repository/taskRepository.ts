@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, lte } from 'drizzle-orm';
+import { and, asc, eq, gte, isNull, lt, lte } from 'drizzle-orm';
 
 import { db, type DbExecutor } from '@/db/client';
 import { EntityType, recordChange, SyncOp } from '@/db/outbox';
@@ -27,6 +27,15 @@ export const taskQueries = {
       .select()
       .from(tasks)
       .where(and(notDeleted, lte(tasks.dueDate, dateKey)))
+      .orderBy(asc(tasks.dueDate), asc(tasks.dueTime));
+  },
+
+  /** 마감일이 [startKey, endKey) 안인 할 일 (캘린더용) */
+  dueBetween(startKey: string, endKey: string, executor: DbExecutor = db) {
+    return executor
+      .select()
+      .from(tasks)
+      .where(and(notDeleted, gte(tasks.dueDate, startKey), lt(tasks.dueDate, endKey)))
       .orderBy(asc(tasks.dueDate), asc(tasks.dueTime));
   },
 };

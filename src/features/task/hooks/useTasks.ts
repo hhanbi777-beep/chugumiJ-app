@@ -19,6 +19,12 @@ export function useTasksDueBy(dateKey: string): Task[] {
   return data;
 }
 
+/** 마감일이 [startKey, endKey) 안인 할 일 */
+export function useTasksDueBetween(startKey: string, endKey: string): Task[] {
+  const { data } = useLiveQuery(taskQueries.dueBetween(startKey, endKey), [startKey, endKey]);
+  return data;
+}
+
 export function useTaskActions() {
   const toggleCompleted = useCallback((task: Task) => {
     taskRepository.setCompleted(task.id, task.completedAt === null);

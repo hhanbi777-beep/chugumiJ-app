@@ -1,4 +1,14 @@
-import { addDays, format, parseISO } from 'date-fns';
+import {
+  addDays,
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  parseISO,
+  startOfMonth,
+  startOfWeek,
+} from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 /** 날짜 처리는 이 파일을 거친다. 저장은 UTC ISO, 표시는 기기 시간대. */
@@ -86,4 +96,35 @@ export function formatDateLabel(date: Date): string {
 /** 예: '10:00' */
 export function formatTimeLabel(date: Date): string {
   return format(date, 'HH:mm');
+}
+
+/** 그 날이 속한 달의 1일 키 */
+export function monthStartKey(dateKey: string): string {
+  return toDateKey(startOfMonth(fromDateKey(dateKey)));
+}
+
+export function addMonthsToKey(dateKey: string, months: number): string {
+  return toDateKey(addMonths(fromDateKey(dateKey), months));
+}
+
+/** 예: '2026년 10월' */
+export function formatMonthTitle(dateKey: string): string {
+  return format(fromDateKey(dateKey), 'yyyy년 M월');
+}
+
+/** 월간 그리드에 보일 날짜 키를 주 단위로 (일요일 시작, 앞뒤 달 날짜 포함) */
+export function monthGridWeeks(monthKey: string): string[][] {
+  const month = fromDateKey(monthKey);
+  const days = eachDayOfInterval({
+    start: startOfWeek(startOfMonth(month)),
+    end: endOfWeek(endOfMonth(month)),
+  }).map(toDateKey);
+  const weeks: string[][] = [];
+  for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7));
+  return weeks;
+}
+
+/** 'YYYY-MM-DD'의 일(day) 숫자 */
+export function dayOfMonth(dateKey: string): number {
+  return Number(dateKey.slice(8, 10));
 }
