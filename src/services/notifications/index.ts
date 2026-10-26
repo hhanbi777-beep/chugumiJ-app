@@ -1,4 +1,5 @@
 export {
+  ensurePermission as ensureNotificationPermission,
   NotificationChannel,
   replaceScheduled,
   setupNotifications,

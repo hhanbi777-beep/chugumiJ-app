@@ -7,7 +7,7 @@ import { AppState, Text, useColorScheme, View } from 'react-native';
 import { db } from '@/db/client';
 import migrations from '@/db/migrations/migrations';
 import { ensureDefaults } from '@/db/seed';
-import { useAlarmNotifications } from '@/features/alarm';
+import { useAlarmScheduling } from '@/features/alarm';
 import { useReminderNotifications } from '@/features/reminder';
 import { replaceScheduled, setupNotifications, useOpenedNotification } from '@/services/notifications';
 
@@ -65,7 +65,7 @@ function useForegroundNow(): Date {
 /** DB 준비 후 도는 앱 전역 작업: 알람·알림을 기기에 예약, 알림 누르면 해당 화면 열기 */
 function AppEffects() {
   const now = useForegroundNow();
-  const alarmItems = useAlarmNotifications(now);
+  const alarmItems = useAlarmScheduling(now);
   const reminderItems = useReminderNotifications(now);
   const scheduled = useMemo(
     () => [...alarmItems, ...reminderItems].slice(0, MAX_SCHEDULED),

@@ -15,6 +15,7 @@ import { useConfirmDelete } from '@/shared/hooks/useConfirmDelete';
 import { spacing, typography, useThemeColors } from '@/shared/theme';
 
 import { useAlarmForm } from '../hooks/useAlarmForm';
+import { ensureAlarmPermission } from '../utils/ensureAlarmPermission';
 import { WEEKDAY_LABELS } from '../types';
 
 /** 알람 추가(id = 'new')·편집 시트. ?date=YYYY-MM-DD로 들어오면 그날 한 번 울리는 알람이 기본. */
@@ -24,7 +25,10 @@ export function AlarmEditScreen() {
   const form = useAlarmForm(id, date);
   const { values, setField } = form;
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!form.canSave) return;
+    // 권한을 먼저 받아야 저장 직후 예약이 바로 된다
+    await ensureAlarmPermission();
     if (form.save()) router.back();
   };
   const handleDelete = useConfirmDelete('이 알람을 삭제할까요?', () => {
@@ -38,7 +42,7 @@ export function AlarmEditScreen() {
         title: form.isNew ? '새 알람' : '알람 편집',
         headerLeft: () => <HeaderButton label="취소" onPress={() => router.back()} />,
         headerRight: () => (
-          <HeaderButton label="저장" isPrimary isDisabled={!form.canSave} onPress={handleSave} />
+          <HeaderButton label="저장" isPrimary isDisabled={!form.canSave} onPress={() => void handleSave()} />
         ),
       }}
     />
