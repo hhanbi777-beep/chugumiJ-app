@@ -6,12 +6,32 @@
 - Expo Router, Zustand, expo-sqlite + Drizzle ORM
 - 로컬 우선(MVP). v1.1에서 Spring Boot 서버와 동기화 예정
 
-## 시작하기
+## 시작하기 (Docker)
+
+PC에 Node를 설치하지 않고 Docker 컨테이너 안에서 개발 서버(Metro)를 띄웁니다. 앱 빌드는 EAS 클라우드에서 합니다.
+
+1. `.env.example`을 복사해 `.env`를 만들고, 폰이 접속할 PC의 LAN IP를 적습니다.
+   - macOS: `ipconfig getifaddr en0` / Windows: `ipconfig`의 IPv4 주소
+2. 개발 서버 실행
+
+   ```bash
+   docker compose up --build
+   ```
+
+3. 폰과 PC를 같은 Wi-Fi에 두고, 개발 빌드 앱에서 `http://<HOST_IP>:8081`로 접속합니다.
+
+자주 쓰는 명령
 
 ```bash
-npm install
-npx expo start
+docker compose run --rm app npm run lint
+docker compose run --rm app npm run typecheck
+docker compose run --rm app npm install <패키지>   # package.json이 PC 쪽에도 반영됨
+docker compose down                                # 종료
 ```
+
+컨테이너는 root가 아닌 `node` 사용자로, 모든 리눅스 권한(capabilities)을 끄고 실행합니다. 열리는 포트는 8081 하나입니다.
+
+Docker 없이 실행하려면 `npm install && npx expo start`.
 
 위젯·알림은 Expo Go에서 동작하지 않아 개발 빌드가 필요합니다.
 
