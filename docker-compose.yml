@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    image: chugumij-app-dev
+    ports:
+      - '8081:8081'
+    environment:
+      # 폰이 접속할 PC의 LAN IP (.env에 HOST_IP=192.168.x.x)
+      REACT_NATIVE_PACKAGER_HOSTNAME: ${HOST_IP:?.env에 HOST_IP를 설정하세요}
+    volumes:
+      # 소스는 PC와 공유해 저장 즉시 반영, node_modules는 컨테이너 전용 볼륨
+      - .:/app
+      - node_modules:/app/node_modules
+    stdin_open: true
+    tty: true
+    # 최소 권한으로 실행
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  node_modules:
