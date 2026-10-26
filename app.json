@@ -8,7 +8,11 @@
     "scheme": "chugumijapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "infoPlist": {
+        "NSAlarmKitUsageDescription": "설정한 시각에 알람을 울리기 위해 필요해요."
+      },
+      "bundleIdentifier": "com.hanbi.chugumij"
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +21,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.hanbi.chugumij"
     },
     "web": {
       "output": "server",

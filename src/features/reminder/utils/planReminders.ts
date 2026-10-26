@@ -4,9 +4,6 @@ import { formatDateLabel, fromTimeKey, fromUtcIso, withTimeOf } from '@/shared/u
 /** 시간이 없는 종일 일정·할 일의 알림 기준 시각 */
 export const DEFAULT_REMINDER_TIME = '09:00';
 
-/** iOS는 앱당 예약 알림 64개 제한. 여유를 두고 가까운 순으로 자른다. */
-const MAX_SCHEDULED = 60;
-
 export type ReminderPlan = {
   reminderId: string;
   fireAt: Date;
@@ -67,7 +64,7 @@ function planFor({
   return null;
 }
 
-/** DB 알림 → 기기에 예약할 목록 (지난 것 제외, 가까운 순, 최대 MAX_SCHEDULED) */
+/** DB 알림 → 기기에 예약할 목록 (지난 것 제외, 가까운 순) */
 export function planReminders(rows: ReminderWithTarget[], now: Date = new Date()): ReminderPlan[] {
   const plans: ReminderPlan[] = [];
   for (const row of rows) {
@@ -77,5 +74,5 @@ export function planReminders(rows: ReminderWithTarget[], now: Date = new Date()
     const fireAt = new Date(startAt.getTime() - row.reminder.offsetMinutes * 60_000);
     if (fireAt > now) plans.push({ ...rest, fireAt });
   }
-  return plans.sort((a, b) => a.fireAt.getTime() - b.fireAt.getTime()).slice(0, MAX_SCHEDULED);
+  return plans.sort((a, b) => a.fireAt.getTime() - b.fireAt.getTime());
 }

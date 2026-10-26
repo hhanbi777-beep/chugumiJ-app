@@ -1,3 +1,4 @@
+export * from './alarms';
 export * from './calendars';
 export * from './events';
 export * from './reminders';

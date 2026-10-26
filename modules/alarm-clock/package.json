@@ -1,0 +1,10 @@
+{
+  "name": "alarm-clock",
+  "version": "0.1.0",
+  "private": true,
+  "description": "끌 때까지 울리는 진짜 알람 (iOS AlarmKit, Android AlarmManager)",
+  "main": "index.ts",
+  "license": "UNLICENSED",
+  "author": "Hanbi",
+  "homepage": "https://github.com/hhanbi777-beep/chugumiJ-app"
+}
