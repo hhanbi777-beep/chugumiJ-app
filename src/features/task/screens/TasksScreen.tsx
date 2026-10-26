@@ -1,7 +1,8 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { FlatList, StyleSheet, TextInput, View } from 'react-native';
 
-import { EmptyState, Screen } from '@/shared/components/ui';
+import { EmptyState, HeaderButton, Screen } from '@/shared/components/ui';
 import { MIN_TOUCH, radius, spacing, typography, useThemeColors } from '@/shared/theme';
 
 import { TaskRow } from '../components/TaskRow';
@@ -20,13 +21,20 @@ export function TasksScreen() {
   };
 
   return (
-    <Screen title="할 일">
+    <Screen
+      title="할 일"
+      headerRight={<HeaderButton label="추가" isPrimary onPress={() => router.push('/task/new')} />}>
       <View style={[styles.card, { backgroundColor: colors.surface }]}>
         <FlatList
           data={tasks}
           keyExtractor={(task) => task.id}
           renderItem={({ item }) => (
-            <TaskRow task={item} meta={item.dueDate ?? undefined} onToggle={toggleCompleted} />
+            <TaskRow
+              task={item}
+              meta={item.dueDate ?? undefined}
+              onToggle={toggleCompleted}
+              onPress={(t) => router.push(`/task/${t.id}`)}
+            />
           )}
           ListEmptyComponent={<EmptyState message="아직 할 일이 없어요" />}
         />
