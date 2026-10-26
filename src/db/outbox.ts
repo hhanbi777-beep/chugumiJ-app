@@ -11,6 +11,7 @@ export const EntityType = {
   TASK_LIST: 'task_list',
   TASK: 'task',
   REMINDER: 'reminder',
+  ALARM: 'alarm',
 } as const;
 export type EntityType = (typeof EntityType)[keyof typeof EntityType];
 

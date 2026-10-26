@@ -4,15 +4,45 @@ import { Platform } from 'react-native';
 
 /** expo-notifications 래퍼. 앱 코드는 이 파일만 거친다. */
 
-const CHANNEL_ID = 'reminders';
+export const NotificationChannel = {
+  REMINDERS: 'reminders',
+  ALARMS: 'alarms',
+} as const;
+export type NotificationChannel = (typeof NotificationChannel)[keyof typeof NotificationChannel];
+
+/** 언제 울릴지: 특정 시각 한 번, 또는 매주 같은 요일·시각 */
+export type NotificationSchedule =
+  | { kind: 'once'; fireAt: Date }
+  /** weekday: 0 일요일 ~ 6 토요일 */
+  | { kind: 'weekly'; weekday: number; hour: number; minute: number };
 
 export type LocalNotification = {
-  fireAt: Date;
+  schedule: NotificationSchedule;
+  channel: NotificationChannel;
   title: string;
   body: string;
   /** 알림을 누르면 열 경로 */
   url: string;
 };
+
+function toTrigger(item: LocalNotification): Notifications.NotificationTriggerInput {
+  const { schedule } = item;
+  if (schedule.kind === 'once') {
+    return {
+      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      date: schedule.fireAt,
+      channelId: item.channel,
+    };
+  }
+  return {
+    type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+    // expo-notifications는 1 일요일 ~ 7 토요일
+    weekday: schedule.weekday + 1,
+    hour: schedule.hour,
+    minute: schedule.minute,
+    channelId: item.channel,
+  };
+}
 
 /** 앱 시작 시 1회: 앱이 켜져 있을 때도 배너 표시, Android 채널 생성 */
 export async function setupNotifications(): Promise<void> {
@@ -25,9 +55,15 @@ export async function setupNotifications(): Promise<void> {
     }),
   });
   if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync(CHANNEL_ID, {
+    await Notifications.setNotificationChannelAsync(NotificationChannel.REMINDERS, {
       name: '일정·할 일 알림',
       importance: AndroidImportance.HIGH,
+    });
+    await Notifications.setNotificationChannelAsync(NotificationChannel.ALARMS, {
+      name: '알람',
+      importance: AndroidImportance.MAX,
+      sound: 'default',
+      vibrationPattern: [0, 500, 300, 500, 300, 500],
     });
   }
 }
@@ -51,12 +87,8 @@ export function replaceScheduled(items: LocalNotification[]): Promise<void> {
       if (items.length === 0 || !(await ensurePermission())) return;
       for (const item of items) {
         await Notifications.scheduleNotificationAsync({
-          content: { title: item.title, body: item.body, data: { url: item.url } },
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.DATE,
-            date: item.fireAt,
-            channelId: CHANNEL_ID,
-          },
+          content: { title: item.title, body: item.body, data: { url: item.url }, sound: 'default' },
+          trigger: toTrigger(item),
         });
       }
     })
