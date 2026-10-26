@@ -1,4 +1,4 @@
-import { and, asc, eq, gt, isNull, lt, lte, or } from 'drizzle-orm';
+import { and, asc, eq, gt, isNull, lt, or } from 'drizzle-orm';
 
 import { db, type DbExecutor } from '@/db/client';
 import { EntityType, recordChange, SyncOp } from '@/db/outbox';
@@ -23,10 +23,10 @@ function toTimeColumns(input: CreateEventInput) {
 }
 
 export const eventQueries = {
-  /** 해당 날짜(기기 시간대)에 걸치는 일정. 종일 일정 먼저, 그다음 시작 시각 순. */
-  onDate(dateKey: string, executor: DbExecutor = db) {
-    const dayStartUtc = fromDateKey(dateKey).toISOString();
-    const dayEndUtc = fromDateKey(addDaysToKey(dateKey, 1)).toISOString();
+  /** [startKey, endKey) 기간(기기 시간대)에 걸치는 일정. 종일 일정 먼저, 그다음 시작 시각 순. */
+  inRange(startKey: string, endKey: string, executor: DbExecutor = db) {
+    const rangeStartUtc = fromDateKey(startKey).toISOString();
+    const rangeEndUtc = fromDateKey(endKey).toISOString();
     return executor
       .select()
       .from(events)
@@ -34,12 +34,17 @@ export const eventQueries = {
         and(
           notDeleted,
           or(
-            and(eq(events.isAllDay, true), lte(events.startDate, dateKey), gt(events.endDate, dateKey)),
-            and(eq(events.isAllDay, false), lt(events.startAt, dayEndUtc), gt(events.endAt, dayStartUtc)),
+            and(eq(events.isAllDay, true), lt(events.startDate, endKey), gt(events.endDate, startKey)),
+            and(eq(events.isAllDay, false), lt(events.startAt, rangeEndUtc), gt(events.endAt, rangeStartUtc)),
           ),
         ),
       )
       .orderBy(asc(events.isAllDay), asc(events.startAt));
+  },
+
+  /** 해당 날짜에 걸치는 일정 */
+  onDate(dateKey: string, executor: DbExecutor = db) {
+    return eventQueries.inRange(dateKey, addDaysToKey(dateKey, 1), executor);
   },
 };
 

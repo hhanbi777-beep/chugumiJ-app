@@ -1,9 +1,10 @@
 import { router } from 'expo-router';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { EventCard, useEventsOn } from '@/features/event';
 import { TaskRow, useTaskActions, useTasksDueBy } from '@/features/task';
 import { EmptyState, Fab, Screen } from '@/shared/components/ui';
+import { useAddPrompt } from '@/shared/hooks/useAddPrompt';
 import { palette, radius, spacing, typography, useThemeColors } from '@/shared/theme';
 import { formatDayTitle, todayKey } from '@/shared/utils/date';
 
@@ -16,13 +17,7 @@ export function TodayScreen() {
 
   const openTasks = tasks.filter((task) => task.completedAt === null);
 
-  const handleAdd = () => {
-    Alert.alert('무엇을 추가할까요?', undefined, [
-      { text: '일정', onPress: () => router.push(`/event/new?date=${dateKey}`) },
-      { text: '할 일', onPress: () => router.push(`/task/new?date=${dateKey}`) },
-      { text: '취소', style: 'cancel' },
-    ]);
-  };
+  const promptAdd = useAddPrompt();
 
   return (
     <Screen title="오늘" subtitle={formatDayTitle(new Date())}>
@@ -66,7 +61,7 @@ export function TodayScreen() {
           </View>
         </View>
       </ScrollView>
-      <Fab accessibilityLabel="일정 또는 할 일 추가" onPress={handleAdd} />
+      <Fab accessibilityLabel="일정 또는 할 일 추가" onPress={() => promptAdd(dateKey)} />
     </Screen>
   );
 }
