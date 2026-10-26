@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { radius, spacing, typography, useThemeColors } from '@/shared/theme';
 import { formatTime } from '@/shared/utils/date';
@@ -8,9 +8,10 @@ import type { Event } from '../types';
 type EventCardProps = {
   event: Event;
   color: string;
+  onPress?: (event: Event) => void;
 };
 
-export function EventCard({ event, color }: EventCardProps) {
+export function EventCard({ event, color, onPress }: EventCardProps) {
   const colors = useThemeColors();
   const timeLabel =
     event.isAllDay || !event.startAt || !event.endAt
@@ -19,7 +20,12 @@ export function EventCard({ event, color }: EventCardProps) {
   const meta = event.location ? `${timeLabel} · ${event.location}` : timeLabel;
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.surface }]}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${event.title}, ${meta}`}
+      disabled={!onPress}
+      onPress={() => onPress?.(event)}
+      style={[styles.card, { backgroundColor: colors.surface }]}>
       <View style={[styles.bar, { backgroundColor: color }]} />
       <View style={styles.text}>
         <Text style={[typography.body, styles.title, { color: colors.text }]} numberOfLines={1}>
@@ -27,7 +33,7 @@ export function EventCard({ event, color }: EventCardProps) {
         </Text>
         <Text style={[typography.caption, { color: colors.textSecondary }]}>{meta}</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 

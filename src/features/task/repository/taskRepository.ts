@@ -3,6 +3,7 @@ import { and, asc, eq, isNull, lte } from 'drizzle-orm';
 import { db, type DbExecutor } from '@/db/client';
 import { EntityType, recordChange, SyncOp } from '@/db/outbox';
 import { tasks } from '@/db/schema';
+import { reminderRepository } from '@/features/reminder';
 import { nowUtcIso } from '@/shared/utils/date';
 import { newId } from '@/shared/utils/uuid';
 
@@ -39,7 +40,8 @@ export const taskRepository = {
       .get();
   },
 
-  create(input: CreateTaskInput): Task {
+  /** reminderOffset: 마감일이 있을 때만 의미 있음. null이면 알림 없음. */
+  create(input: CreateTaskInput, reminderOffset: number | null = null): Task {
     const now = nowUtcIso();
     const row: Task = {
       id: newId(),
@@ -61,11 +63,13 @@ export const taskRepository = {
     db.transaction((tx) => {
       tx.insert(tasks).values(row).run();
       recordChange(tx, { entityType: EntityType.TASK, entityId: row.id, op: SyncOp.CREATE, row });
+      reminderRepository.replaceFor(tx, { taskId: row.id }, row.dueDate ? reminderOffset : null);
     });
     return row;
   },
 
-  update(id: string, input: UpdateTaskInput): Task | undefined {
+  /** reminderOffset을 넘기지 않으면(undefined) 알림은 그대로 둔다. */
+  update(id: string, input: UpdateTaskInput, reminderOffset?: number | null): Task | undefined {
     return db.transaction((tx) => {
       const updated = tx
         .update(tasks)
@@ -75,6 +79,9 @@ export const taskRepository = {
         .get();
       if (updated) {
         recordChange(tx, { entityType: EntityType.TASK, entityId: id, op: SyncOp.UPDATE, row: updated });
+        if (reminderOffset !== undefined) {
+          reminderRepository.replaceFor(tx, { taskId: id }, updated.dueDate ? reminderOffset : null);
+        }
       }
       return updated;
     });
@@ -107,6 +114,7 @@ export const taskRepository = {
         .get();
       if (deleted) {
         recordChange(tx, { entityType: EntityType.TASK, entityId: id, op: SyncOp.DELETE, row: deleted });
+        reminderRepository.replaceFor(tx, { taskId: id }, null);
       }
     });
   },
